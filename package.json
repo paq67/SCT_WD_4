@@ -11,7 +11,6 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.36.3",
     "@dicebear/avatars": "^4.10.8",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
@@ -59,18 +58,15 @@
     "framer-motion": "^11.13.1",
     "howler": "^2.2.4",
     "input-otp": "^1.2.4",
-    "konva": "^9.3.18",
     "lucide-react": "^0.453.0",
     "memorystore": "^1.6.7",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "pixi.js": "^8.8.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.1",
     "react-icons": "^5.4.0",
-    "react-konva": "^18.2.10",
     "react-resizable-panels": "^2.1.4",
     "react-timer-hook": "^3.0.8",
     "recharts": "^2.13.0",
@@ -80,8 +76,7 @@
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
     "zod": "^3.23.8",
-    "zod-validation-error": "^3.4.0",
-    "zustand": "^5.0.3"
+    "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
