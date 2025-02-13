@@ -138,6 +138,10 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return newCompletion;
   }
+
+  async getShopItems(): Promise<ShopItem[]> {
+    return db.select().from(shopItems);
+  }
 }
 
 export const storage = new DatabaseStorage();
