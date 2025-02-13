@@ -169,7 +169,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getShopItems(): Promise<Item[]> {
-    return db.select().from(items);
+    const items = await db.select().from(items);
+    return items;
   }
 
   async purchaseItem(userId: number, itemId: number): Promise<UserItem> {
