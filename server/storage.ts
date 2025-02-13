@@ -1,10 +1,7 @@
 import { 
   users, type User, type InsertUser,
   habits, type Habit, type InsertHabit,
-  completions, type Completion, type InsertCompletion,
-  items, type Item,
-  userItems, type UserItem,
-  pets, type Pet
+  completions, type Completion, type InsertCompletion 
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -16,8 +13,6 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUserXP(id: number, xp: number): Promise<User>;
   unlockItem(id: number, type: 'sounds' | 'backgrounds' | 'characters', item: string): Promise<User>;
-  updateUserCoins(id: number, coins: number): Promise<User>;
-  setActivePet(userId: number, petId: number): Promise<User>;
 
   // Habit methods
   getHabits(userId: number): Promise<Habit[]>;
@@ -29,15 +24,6 @@ export interface IStorage {
   // Completion methods
   getCompletions(userId: number, habitId?: number): Promise<Completion[]>;
   createCompletion(completion: InsertCompletion & { userId: number }): Promise<Completion>;
-
-  // Shop methods
-  getShopItems(): Promise<Item[]>;
-  purchaseItem(userId: number, itemId: number): Promise<UserItem>;
-
-  // Pet methods
-  getUserPets(userId: number): Promise<Pet[]>;
-  createPet(userId: number, itemId: number, name: string): Promise<Pet>;
-  feedPet(userId: number, petId: number): Promise<Pet>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -60,9 +46,7 @@ export class DatabaseStorage implements IStorage {
         level: 1,
         unlockedSounds: [],
         unlockedBackgrounds: [],
-        unlockedCharacters: [],
-        coins: 100, // Added initial coins
-        activePetId: null
+        unlockedCharacters: []
       })
       .returning();
     return user;
@@ -79,12 +63,10 @@ export class DatabaseStorage implements IStorage {
         level: 1,
         unlockedSounds: [],
         unlockedBackgrounds: [],
-        unlockedCharacters: [],
-        coins: 100, // Added initial coins
-        activePetId: null
+        unlockedCharacters: []
       }).returning();
     }
-
+    
     const newXP = user.xp + xp;
     const newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
 
@@ -166,101 +148,6 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return newCompletion;
-  }
-
-  async getShopItems(): Promise<Item[]> {
-    const items = await db.select().from(items);
-    return items;
-  }
-
-  async purchaseItem(userId: number, itemId: number): Promise<UserItem> {
-    // First check if user has enough coins
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    const [item] = await db.select().from(items).where(eq(items.id, itemId));
-
-    if (!user || !item) {
-      throw new Error("User or item not found");
-    }
-
-    if (user.coins < item.price) {
-      throw new Error("Not enough coins");
-    }
-
-    // Deduct coins and add item to user's inventory
-    await db
-      .update(users)
-      .set({ coins: user.coins - item.price })
-      .where(eq(users.id, userId));
-
-    const [userItem] = await db
-      .insert(userItems)
-      .values({
-        userId,
-        itemId,
-        equipped: false,
-        acquiredAt: new Date()
-      })
-      .returning();
-
-    return userItem;
-  }
-
-  async updateUserCoins(id: number, coins: number): Promise<User> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    if (!user) throw new Error("User not found");
-
-    const newCoins = user.coins + coins;
-    const [updatedUser] = await db
-      .update(users)
-      .set({ coins: newCoins })
-      .where(eq(users.id, id))
-      .returning();
-    return updatedUser;
-  }
-
-  async getUserPets(userId: number): Promise<Pet[]> {
-    return db.select().from(pets).where(eq(pets.userId, userId));
-  }
-
-  async createPet(userId: number, itemId: number, name: string): Promise<Pet> {
-    const [pet] = await db
-      .insert(pets)
-      .values({
-        userId,
-        itemId,
-        name,
-        happiness: 100,
-        lastFed: new Date(),
-        createdAt: new Date()
-      })
-      .returning();
-    return pet;
-  }
-
-  async feedPet(userId: number, petId: number): Promise<Pet> {
-    const [pet] = await db
-      .update(pets)
-      .set({
-        happiness: 100,
-        lastFed: new Date()
-      })
-      .where(eq(pets.id, petId))
-      .where(eq(pets.userId, userId))
-      .returning();
-
-    if (!pet) throw new Error("Pet not found");
-    return pet;
-  }
-
-  async setActivePet(userId: number, petId: number): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ activePetId: petId })
-      .where(eq(users.id, userId))
-      .returning();
-
-    if (!user) throw new Error("User not found");
-    return user;
   }
 }
 

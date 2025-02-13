@@ -43,19 +43,18 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/completions", async (req: Request, res: Response) => {
     const userId = 1; // Hardcoded for demo
     const data = insertCompletionSchema.parse(req.body);
-
+    
     const completion = await storage.createCompletion({ ...data, userId });
-
+    
     // Update habit progress
     const habit = await storage.getHabit(data.habitId);
     if (habit) {
       await storage.updateHabit(habit.id, { current: habit.current + 1 });
     }
-
-    // Award XP and coins
+    
+    // Award XP
     await storage.updateUserXP(userId, 10);
-    await storage.updateUserCoins(userId, 5); // Award 5 coins per completion
-
+    
     res.json(completion);
   });
 
@@ -63,54 +62,6 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/profile", async (req: Request, res: Response) => {
     const userId = 1; // Hardcoded for demo
     const user = await storage.getUser(userId);
-    res.json(user);
-  });
-
-  // Shop & Items
-  app.get("/api/shop", async (req: Request, res: Response) => {
-    const items = await storage.getShopItems();
-    res.json(items);
-  });
-
-  app.post("/api/shop/buy", async (req: Request, res: Response) => {
-    const userId = 1; // Hardcoded for demo
-    const schema = z.object({
-      itemId: z.number()
-    });
-    const { itemId } = schema.parse(req.body);
-    const userItem = await storage.purchaseItem(userId, itemId);
-    res.json(userItem);
-  });
-
-  // Pet Management
-  app.get("/api/pets", async (req: Request, res: Response) => {
-    const userId = 1; // Hardcoded for demo
-    const pets = await storage.getUserPets(userId);
-    res.json(pets);
-  });
-
-  app.post("/api/pets", async (req: Request, res: Response) => {
-    const userId = 1; // Hardcoded for demo
-    const schema = z.object({
-      itemId: z.number(),
-      name: z.string()
-    });
-    const data = schema.parse(req.body);
-    const pet = await storage.createPet(userId, data.itemId, data.name);
-    res.json(pet);
-  });
-
-  app.post("/api/pets/:id/feed", async (req: Request, res: Response) => {
-    const userId = 1; // Hardcoded for demo
-    const petId = parseInt(req.params.id);
-    const pet = await storage.feedPet(userId, petId);
-    res.json(pet);
-  });
-
-  app.post("/api/pets/:id/activate", async (req: Request, res: Response) => {
-    const userId = 1; // Hardcoded for demo
-    const petId = parseInt(req.params.id);
-    const user = await storage.setActivePet(userId, petId);
     res.json(user);
   });
 
