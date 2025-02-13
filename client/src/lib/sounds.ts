@@ -4,10 +4,10 @@ class SoundManager {
   private volume: number = 0.5;
 
   private sounds = {
-    rain: 'https://cdn.freesound.org/previews/346/346562_5858296-lq.mp3',
-    cafe: 'https://cdn.freesound.org/previews/323/323502_5260872-lq.mp3',
-    whitenoise: 'https://cdn.freesound.org/previews/242/242037_4387476-lq.mp3',
-    forest: 'https://cdn.freesound.org/previews/573/573576_5142851-lq.mp3'
+    rain: '/sounds/rain.mp3',
+    cafe: '/sounds/cafe.mp3',
+    whitenoise: '/sounds/whitenoise.mp3',
+    forest: '/sounds/forest.mp3'
   };
 
   play(sound: keyof typeof this.sounds) {
@@ -18,7 +18,7 @@ class SoundManager {
     this.audio = new Audio(this.sounds[sound]);
     this.audio.loop = true;
     this.audio.volume = this.volume;
-    this.audio.play();
+    this.audio.play().catch(err => console.error('Audio playback failed:', err));
   }
 
   stop() {
@@ -36,4 +36,5 @@ class SoundManager {
   }
 }
 
-export const soundManager = new SoundManager();
+const soundManager = new SoundManager();
+export { soundManager };
