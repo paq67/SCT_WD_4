@@ -33,7 +33,9 @@ export default function Character({ level, onLevelUp }: CharacterProps) {
         backgroundColor: 0x00000000,
         antialias: true,
       });
-      pixiRef.current.appendChild(appRef.current.view as HTMLCanvasElement);
+      if (appRef.current.canvas) {
+        pixiRef.current.appendChild(appRef.current.canvas);
+      }
     }
 
     // Load character sprite based on emotion
