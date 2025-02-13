@@ -1,7 +1,8 @@
 import { 
   users, type User, type InsertUser,
   habits, type Habit, type InsertHabit,
-  completions, type Completion, type InsertCompletion 
+  completions, type Completion, type InsertCompletion,
+  shopItems, type ShopItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
