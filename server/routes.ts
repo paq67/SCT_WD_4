@@ -43,36 +43,75 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/completions", async (req: Request, res: Response) => {
     const userId = 1; // Hardcoded for demo
     const data = insertCompletionSchema.parse(req.body);
-    
-    const completion = await storage.createCompletion({ ...data, userId });
-    
-    // Update habit progress
+
+    // Calculate coins and XP
     const habit = await storage.getHabit(data.habitId);
-    if (habit) {
-      await storage.updateHabit(habit.id, { current: habit.current + 1 });
+    if (!habit) throw new Error("Habit not found");
+
+    const wasCompletedToday = habit.lastCompleted 
+      ? new Date(habit.lastCompleted).toDateString() === new Date().toDateString()
+      : false;
+
+    if (!wasCompletedToday) {
+      const streakBonus = Math.floor(habit.streak / 7) * 5; // +5 coins per week of streak
+      const coinsEarned = 10 + streakBonus; // Base 10 coins + streak bonus
+      const xpEarned = 10; // Base 10 XP
+
+      const completion = await storage.createCompletion({ 
+        ...data, 
+        userId,
+        coinsEarned,
+        xpEarned
+      });
+
+      // Update habit progress and streak
+      const newStreak = habit.streak + 1;
+      await storage.updateHabit(habit.id, { 
+        current: habit.current + 1,
+        streak: newStreak,
+        lastCompleted: new Date()
+      });
+
+      // Award coins and XP
+      await storage.updateUserCoins(userId, coinsEarned);
+      await storage.updateUserXP(userId, xpEarned);
+
+      res.json(completion);
+    } else {
+      res.status(400).json({ message: "Habit already completed today" });
     }
-    
-    // Award XP
-    await storage.updateUserXP(userId, 10);
-    
-    res.json(completion);
+  });
+
+  // Shop
+  app.get("/api/shop", async (req: Request, res: Response) => {
+    const items = await storage.getShopItems();
+    res.json(items);
+  });
+
+  app.post("/api/shop/purchase", async (req: Request, res: Response) => {
+    const userId = 1; // Hardcoded for demo
+    const schema = z.object({
+      itemId: z.number()
+    });
+    const { itemId } = schema.parse(req.body);
+    const result = await storage.purchaseItem(userId, itemId);
+    res.json(result);
+  });
+
+  app.post("/api/shop/use", async (req: Request, res: Response) => {
+    const userId = 1; // Hardcoded for demo
+    const schema = z.object({
+      itemId: z.number()
+    });
+    const { itemId } = schema.parse(req.body);
+    const result = await storage.useItem(userId, itemId);
+    res.json(result);
   });
 
   // User Profile & Progress
   app.get("/api/profile", async (req: Request, res: Response) => {
     const userId = 1; // Hardcoded for demo
     const user = await storage.getUser(userId);
-    res.json(user);
-  });
-
-  app.post("/api/unlock", async (req: Request, res: Response) => {
-    const userId = 1; // Hardcoded for demo
-    const schema = z.object({
-      type: z.enum(['sounds', 'backgrounds', 'characters']),
-      item: z.string()
-    });
-    const { type, item } = schema.parse(req.body);
-    const user = await storage.unlockItem(userId, type, item);
     res.json(user);
   });
 

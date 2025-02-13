@@ -7,7 +7,9 @@ import {
   Timer,
   User as UserIcon,
   Moon,
-  Sun
+  Sun,
+  ShoppingBag,
+  Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
@@ -17,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { theme, setTheme } = useTheme();
-  
+
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/api/profile"]
   });
@@ -33,9 +35,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Layout className="h-6 w-6" />
             <span className="font-bold">HabitQuest</span>
           </div>
-          
+
           {!isLoading && user && (
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Coins className="h-4 w-4" />
+                <span>{user.coins}</span>
+              </div>
               <div className="text-sm">
                 <div className="font-medium">Level {user.level}</div>
                 <Progress value={progress} className="w-32 h-2" />
@@ -61,7 +67,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               Habits
             </Link>
           </Button>
-          
+
           <Button
             variant={location === "/timer" ? "default" : "ghost"}
             className="w-full justify-start"
@@ -72,7 +78,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               Timer
             </Link>
           </Button>
-          
+
+          <Button
+            variant={location === "/shop" ? "default" : "ghost"}
+            className="w-full justify-start"
+            asChild
+          >
+            <Link href="/shop">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Shop
+            </Link>
+          </Button>
+
           <Button
             variant={location === "/profile" ? "default" : "ghost"}
             className="w-full justify-start"

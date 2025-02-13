@@ -7,6 +7,7 @@ import AppLayout from "@/components/layout";
 import Dashboard from "@/pages/dashboard";
 import Timer from "@/pages/timer";
 import Profile from "@/pages/profile";
+import Shop from "@/pages/shop";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/timer" component={Timer} />
         <Route path="/profile" component={Profile} />
+        <Route path="/shop" component={Shop} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
