@@ -3,11 +3,27 @@ import { User } from "@shared/schema";
 import Character from "@/components/character";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCharacterStore } from "@/lib/characterStore";
+import { useEffect } from "react";
 
 export default function Profile() {
   const { data: user } = useQuery<User>({
     queryKey: ["/api/profile"],
   });
+
+  const updateEmotionBasedOnProgress = useCharacterStore(
+    (state) => state.updateEmotionBasedOnProgress
+  );
+
+  useEffect(() => {
+    if (user) {
+      const totalHabits = user.unlockedSounds.length + 
+        user.unlockedBackgrounds.length + 
+        user.unlockedCharacters.length;
+      const completedItems = user.inventory.length;
+      updateEmotionBasedOnProgress(completedItems, totalHabits);
+    }
+  }, [user, updateEmotionBasedOnProgress]);
 
   if (!user) return null;
 
@@ -17,7 +33,7 @@ export default function Profile() {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
-      
+
       <div className="grid gap-8 lg:grid-cols-2">
         <div>
           <Character level={user.level} />
