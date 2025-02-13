@@ -53,9 +53,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserXP(id: number, xp: number): Promise<User> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    if (!user) throw new Error("User not found");
-
+    let [user] = await db.select().from(users).where(eq(users.id, id));
+    if (!user) {
+      [user] = await db.insert(users).values({
+        id,
+        username: `user${id}`,
+        password: 'default',
+        xp: 0,
+        level: 1,
+        unlockedSounds: [],
+        unlockedBackgrounds: [],
+        unlockedCharacters: []
+      }).returning();
+    }
+    
     const newXP = user.xp + xp;
     const newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
 
