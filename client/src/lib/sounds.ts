@@ -1,40 +1,45 @@
+import { Howl } from "howler";
+
+type SoundType = "rain" | "cafe" | "whitenoise" | "forest";
+
+const sounds: Record<SoundType, string> = {
+  rain: "https://cdn.example.com/rain.mp3",
+  cafe: "https://cdn.example.com/cafe.mp3",
+  whitenoise: "https://cdn.example.com/whitenoise.mp3",
+  forest: "https://cdn.example.com/forest.mp3"
+};
 
 class SoundManager {
-  private audio: HTMLAudioElement | null = null;
-  private volume: number = 0.5;
+  private currentSound?: Howl;
+  private volume = 0.5;
 
-  private sounds = {
-    rain: '/sounds/rain.mp3',
-    cafe: '/sounds/cafe.mp3',
-    whitenoise: '/sounds/whitenoise.mp3',
-    forest: '/sounds/forest.mp3'
-  };
-
-  play(sound: keyof typeof this.sounds) {
-    if (this.audio) {
-      this.stop();
+  play(type: SoundType) {
+    if (this.currentSound) {
+      this.currentSound.stop();
     }
 
-    this.audio = new Audio(this.sounds[sound]);
-    this.audio.loop = true;
-    this.audio.volume = this.volume;
-    this.audio.play().catch(err => console.error('Audio playback failed:', err));
+    this.currentSound = new Howl({
+      src: [sounds[type]],
+      loop: true,
+      volume: this.volume
+    });
+
+    this.currentSound.play();
   }
 
   stop() {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio = null;
+    if (this.currentSound) {
+      this.currentSound.stop();
+      this.currentSound = undefined;
     }
   }
 
   setVolume(volume: number) {
     this.volume = volume;
-    if (this.audio) {
-      this.audio.volume = volume;
+    if (this.currentSound) {
+      this.currentSound.volume(volume);
     }
   }
 }
 
-const soundManager = new SoundManager();
-export { soundManager };
+export const soundManager = new SoundManager();
