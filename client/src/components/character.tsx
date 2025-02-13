@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Application, Sprite } from 'pixi.js';
+import { Application, Assets, Sprite } from 'pixi.js';
 import { Stage, Layer, Image } from 'react-konva';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCharacterStore, type Emotion } from '@/lib/characterStore';
@@ -17,36 +17,53 @@ interface CharacterProps {
 }
 
 export default function Character({ level, onLevelUp }: CharacterProps) {
-  const pixiRef = useRef<HTMLDivElement>(null);
-  const appRef = useRef<Application>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<Application | null>(null);
   const { emotion, equippedItems } = useCharacterStore();
 
   // Initialize PixiJS
   useEffect(() => {
-    if (!pixiRef.current) return;
+    if (!containerRef.current) return;
 
-    // Create PixiJS application if it doesn't exist
-    if (!appRef.current) {
-      appRef.current = new Application({
-        width: 400,
-        height: 400,
-        backgroundColor: 0x00000000,
-        antialias: true,
-      });
-      pixiRef.current.appendChild(appRef.current.view as HTMLCanvasElement);
-    }
+    // Create canvas element
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 400;
+    containerRef.current.appendChild(canvas);
 
-    // Load character sprite based on emotion
-    const sprite = Sprite.from(SPRITE_STATES[emotion]);
-    sprite.anchor.set(0.5);
-    sprite.x = appRef.current.screen.width / 2;
-    sprite.y = appRef.current.screen.height / 2;
-    sprite.scale.set(0.8);
+    // Initialize PixiJS application
+    const app = new Application({
+      view: canvas,
+      width: 400,
+      height: 400,
+      backgroundColor: 0x00000000,
+      antialias: true,
+    });
 
-    appRef.current.stage.addChild(sprite);
+    appRef.current = app;
 
+    // Load and create sprite
+    const loadSprite = async () => {
+      try {
+        const sprite = Sprite.from(SPRITE_STATES[emotion]);
+        sprite.anchor.set(0.5);
+        sprite.x = app.screen.width / 2;
+        sprite.y = app.screen.height / 2;
+        sprite.scale.set(0.8);
+        app.stage.addChild(sprite);
+      } catch (error) {
+        console.error('Error loading sprite:', error);
+      }
+    };
+
+    loadSprite();
+
+    // Cleanup
     return () => {
-      appRef.current?.stage.removeChild(sprite);
+      app.destroy(true, { children: true, texture: true, baseTexture: true });
+      if (containerRef.current?.contains(canvas)) {
+        containerRef.current.removeChild(canvas);
+      }
     };
   }, [emotion]);
 
@@ -59,7 +76,7 @@ export default function Character({ level, onLevelUp }: CharacterProps) {
         className="w-full h-full relative"
       >
         {/* Base character rendered with PixiJS */}
-        <div ref={pixiRef} className="absolute inset-0" />
+        <div ref={containerRef} className="absolute inset-0" />
 
         {/* Customization layer with Konva */}
         <Stage width={400} height={400} className="absolute inset-0">
@@ -67,11 +84,12 @@ export default function Character({ level, onLevelUp }: CharacterProps) {
             {/* Render equipped items */}
             {Object.entries(equippedItems).map(([slot, item]) => {
               if (!item) return null;
+              const image = new window.Image();
+              image.src = item;
               return (
                 <Image
                   key={slot}
-                  image={new window.Image()}
-                  src={item}
+                  image={image}
                   width={100}
                   height={100}
                   x={150}
